@@ -45,9 +45,9 @@ public class ChessBoard {
                 boolean squareIsBlank = true;
                 
                 for (int k = 0; k < bitboards.length; k++) {
-                    int rowShift = BOARD_SIZE * (BOARD_SIZE - i - 1);
-                    long row = bitboards[k] & (0xffL << rowShift); // mask out everything but the desired row
-                    row &= (0x80L << rowShift) >>> j; // mask out everything but the desired column within the row
+                    int rowShift = BOARD_SIZE * i;
+                    long row = bitboards[k] & (TOP >>> rowShift); // mask out everything but the desired row
+                    row &= LEFT >>> j; // mask out everything but the desired column within the row
                     
                     // If row is zero, it means that piece isn't present in that row and column.
                     if (row != 0) {
