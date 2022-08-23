@@ -11,27 +11,45 @@ public class Main {
 
         for (long move : ChessBoard.getKingMoves()) {
             //System.out.println(String.format("%064d", new BigInteger(Long.toBinaryString(kingMove))));
-            chessBoard.zeroBoard();
-            chessBoard.setBoard(move, 4);
-            System.out.println(chessBoard);
-        }
-
-        System.out.println("WHITE PAWN MOVES: ");
-
-        for (long move : ChessBoard.getWhitePawnMoves()) {
-            //System.out.println(String.format("%064d", new BigInteger(Long.toBinaryString(pawnMove))));
             //chessBoard.zeroBoard();
-            //chessBoard.setBoard(move, 5);
+            //chessBoard.setBoard(move, 4);
             //System.out.println(chessBoard);
         }
 
-        System.out.println("BLACK PAWN MOVES: ");
+        System.out.println("BLACK FORWARD PAWN MOVES: ");
 
-        for (long move : ChessBoard.getBlackPawnMoves()) {
+        for (long move : ChessBoard.getForwardPawnMoves(true)) {
             //System.out.println(String.format("%064d", new BigInteger(Long.toBinaryString(pawnMove))));
-            //chessBoard.zeroBoard();
-            //chessBoard.setBoard(move, 11);
-            //System.out.println(chessBoard);        
+            chessBoard.zeroBoard();
+            chessBoard.setBoard(move, 5);
+            System.out.println(chessBoard);        
+        }
+
+        System.out.println("BLACK DIAGONAL PAWN MOVES: ");
+
+        for (long move : ChessBoard.getDiagonalPawnMoves(true)) {
+            //System.out.println(String.format("%064d", new BigInteger(Long.toBinaryString(pawnMove))));
+            chessBoard.zeroBoard();
+            chessBoard.setBoard(move, 5);
+            System.out.println(chessBoard);        
+        }
+
+        System.out.println("WHITE FORWARD PAWN MOVES: ");
+
+        for (long move : ChessBoard.getForwardPawnMoves(false)) {
+            //System.out.println(String.format("%064d", new BigInteger(Long.toBinaryString(pawnMove))));
+            chessBoard.zeroBoard();
+            chessBoard.setBoard(move, 11);
+            System.out.println(chessBoard);        
+        }
+
+        System.out.println("WHITE DIAGONAL PAWN MOVES: ");
+
+        for (long move : ChessBoard.getDiagonalPawnMoves(false)) {
+            //System.out.println(String.format("%064d", new BigInteger(Long.toBinaryString(pawnMove))));
+            chessBoard.zeroBoard();
+            chessBoard.setBoard(move, 11);
+            System.out.println(chessBoard);        
         }
 
         System.out.println("KNIGHT MOVES: ");

@@ -154,29 +154,24 @@ public class ChessBoard {
         return kingMoves;
     }
 
-    public static long[] getWhitePawnMoves() {
+    public static long[] getForwardPawnMoves(boolean black) {
         long[] pawnMoves = new long[BOARD_SIZE * (BOARD_SIZE - 1)];
 
         for (int i = BOARD_SIZE; i < pawnMoves.length; i++) {
-            long square = getSquare(i);
-
-            pawnMoves[i] = move(square, -1, 1)
-            | move(square, 0, 1)
-            | move(square, 1, 1);
+            pawnMoves[i] = move(getSquare(i), 0, black ? -1 : 1);
         }
 
         return pawnMoves;
     }
 
-    public static long[] getBlackPawnMoves() {
+    public static long[] getDiagonalPawnMoves(boolean black) {
         long[] pawnMoves = new long[BOARD_SIZE * (BOARD_SIZE - 1)];
 
         for (int i = BOARD_SIZE; i < pawnMoves.length; i++) {
             long square = getSquare(i);
 
-            pawnMoves[i] = move(square, -1, -1)
-            | move(square, 0, -1)
-            | move(square, 1, -1);
+            pawnMoves[i] = move(square, -1, black ? -1 : 1)
+            | move(square, 1, black ? -1 : 1);
         }
 
         return pawnMoves;
