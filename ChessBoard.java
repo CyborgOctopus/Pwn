@@ -1,6 +1,9 @@
 import java.math.BigInteger;
 
 // Inspired by https://alexanderameye.github.io/notes/chess-engine/
+// I learned about how magic bitboards work from here: 
+// https://essays.jwatzman.org/essays/chess-move-generation-with-magic-bitboards.html
+
 
 public class ChessBoard {
 
@@ -8,6 +11,10 @@ public class ChessBoard {
     // The letter A is used for pawns because lowercase and capital Ps look too similar.
     private static String[] PIECE_LETTERS = {"R", "N", "B", "Q", "K", "A", "r", "n", "b", "q", "k", "a"};
     private static String BLANK_SQUARE = "_";
+    private static long LEFT = 0x8080808080808080L;
+    private static long RIGHT = 0x0101010101010101L;
+    private static long TOP = 0xff00000000000000L;
+    private static long BOTTOM = 0x00000000000000ffL;
 
     private static long BLACK_ROOKS = 0x8100000000000000L;
     private static long BLACK_KNIGHTS = 0x4200000000000000L;
@@ -62,6 +69,16 @@ public class ChessBoard {
         return boardString;
     }
 
+    public void setBoard(long board, int pos) {
+        this.bitboards[pos] = board;
+    }
+
+    public void zeroBoard() {
+        for (int i = 0; i < this.bitboards.length; i++) {
+            this.setBoard(0L, i);
+        }
+    }
+
     public long[][] getLegalMoves() {
         return null;
     }
@@ -70,71 +87,129 @@ public class ChessBoard {
         return null;
     }
 
-    private long[] getKnightMoves() {
-        return null;
+    public static long[] getRookMoves() {
+        long[] rookMoves = new long[BOARD_SIZE * BOARD_SIZE];
+    
+        for (int i = 0; i < rookMoves.length; i++) {
+            int rowShift = BOARD_SIZE * (i / BOARD_SIZE);
+            int columnShift = i % BOARD_SIZE;
+            rookMoves[i] = ((TOP >>> rowShift) | (LEFT >>> columnShift)) & (~getSquare(i));
+        }
+
+        return rookMoves;
+    }
+
+    public static long[] getBishopMoves() {
+        long[] bishopMoves = new long[BOARD_SIZE * BOARD_SIZE];
+
+        for (int i = 0; i < bishopMoves.length; i++) {
+            long square = getSquare(i);
+
+            for (int j = 1; j < BOARD_SIZE; j++) {
+                bishopMoves[i] |= move(square, -j, -j)
+                | move(square, -j, j)
+                | move(square, j, -j)
+                | move(square, j, j);
+            }
+        }
+
+        return bishopMoves;
+    }
+
+    public static long[] getKnightMoves() {
+        long[] knightMoves = new long[BOARD_SIZE * BOARD_SIZE];
+
+        for (int i = 0; i < knightMoves.length; i++) {
+            long square = getSquare(i);
+
+            knightMoves[i] = move(square, -2, -1)
+            | move(square, -2, 1)
+            | move(square, -1, -2)
+            | move(square, -1, 2)
+            | move(square, 1, -2)
+            | move(square, 1, 2)
+            | move(square, 2, -1)
+            | move(square, 2, 1);
+        }
+
+        return knightMoves;
     }
 
     public static long[] getKingMoves() {
         long[] kingMoves = new long[BOARD_SIZE * BOARD_SIZE];
 
         for (int i = 0; i < kingMoves.length; i++) {
-            long square = 1L << (BOARD_SIZE * BOARD_SIZE - i - 1);
-            //System.out.println("i: " + i);
-            //System.out.println("SQUARE: " + String.format("%064d", new BigInteger(Long.toBinaryString(square))));
+            long square = getSquare(i);
 
-            boolean isTop = i < BOARD_SIZE;
-            boolean isBottom = i >= BOARD_SIZE * (BOARD_SIZE - 1);
-            boolean isLeft = i % BOARD_SIZE == 0;
-            boolean isRight = i % BOARD_SIZE == BOARD_SIZE - 1;
-
-            kingMoves[i] = (isTop ? 0L : square << BOARD_SIZE) // moving up
-            | (isBottom ? 0L : square >>> BOARD_SIZE) // moving down
-            | (isLeft ? 0L : square << 1) // moving left
-            | (isRight ? 0L : square >>> 1) // moving right
-            | ((isTop || isLeft) ? 0L : square << (BOARD_SIZE + 1)) // moving up and to the left
-            | ((isTop || isRight) ? 0L : square << (BOARD_SIZE - 1)) // moving up and to the right
-            | ((isBottom || isLeft) ? 0L : square >>> (BOARD_SIZE - 1)) // moving down and to the left
-            | ((isBottom || isRight) ? 0L : square >>> (BOARD_SIZE + 1)); // moving down and to the right
+            kingMoves[i] = move(square, -1, -1)
+            | move(square, -1, 0)
+            | move(square, -1, 1)
+            | move(square, 0, -1)
+            | move(square, 0, 1)
+            | move(square, 1, -1)
+            | move(square, 1, 0)
+            | move(square, 1, 1);   
         }
 
         return kingMoves;
     }
 
     public static long[] getWhitePawnMoves() {
-        long[] pawnMoves = new long[BOARD_SIZE * (BOARD_SIZE - 2)];
+        long[] pawnMoves = new long[BOARD_SIZE * (BOARD_SIZE - 1)];
 
-        for (int i = 0; i < pawnMoves.length; i++) {
-            long square = 1L << (BOARD_SIZE * (BOARD_SIZE - 1) - i - 1);
+        for (int i = BOARD_SIZE; i < pawnMoves.length; i++) {
+            long square = getSquare(i);
 
-            System.out.println("i: " + i);
-            System.out.println("SQUARE: " + String.format("%064d", new BigInteger(Long.toBinaryString(square))));
-
-            boolean isLeft = i % BOARD_SIZE == 0;
-            boolean isRight = i % BOARD_SIZE == BOARD_SIZE - 1;
-
-            pawnMoves[i] = (square << BOARD_SIZE) // moving up
-            | (isLeft ? 0L : square << (BOARD_SIZE + 1)) // moving up and to the left
-            | (isRight ? 0L : square << (BOARD_SIZE - 1)); // moving up and to the right
+            pawnMoves[i] = move(square, -1, 1)
+            | move(square, 0, 1)
+            | move(square, 1, 1);
         }
 
         return pawnMoves;
     }
 
     public static long[] getBlackPawnMoves() {
-        long[] pawnMoves = new long[BOARD_SIZE * (BOARD_SIZE - 2)];
+        long[] pawnMoves = new long[BOARD_SIZE * (BOARD_SIZE - 1)];
 
-        for (int i = 0; i < pawnMoves.length; i++) {
-            long square = 1L << (BOARD_SIZE * (BOARD_SIZE - 1) - i - 1);
+        for (int i = BOARD_SIZE; i < pawnMoves.length; i++) {
+            long square = getSquare(i);
 
-            boolean isLeft = i % BOARD_SIZE == 0;
-            boolean isRight = i % BOARD_SIZE == BOARD_SIZE - 1;
-
-            pawnMoves[i] = (square >>> BOARD_SIZE) // moving down
-            | (isLeft ? 0L : square >>> (BOARD_SIZE - 1)) // moving down and to the left
-            | (isRight ? 0L : square >>> (BOARD_SIZE + 1)); // moving down and to the right
+            pawnMoves[i] = move(square, -1, -1)
+            | move(square, 0, -1)
+            | move(square, 1, -1);
         }
 
         return pawnMoves;
+    }
+
+    // Returns a square shifted horizontally and vertically by a given amount, or 0 if this shift would
+    // take the square out of bounds.
+    private static long move(long square, int horizontalShift, int verticalShift) {
+        if ((horizontalShift == 0) && (verticalShift == 0)) {
+            return square;
+        }
+
+        if (horizontalShift > 0) {
+            square = (square & (~RIGHT)) >>> 1;
+            horizontalShift--;
+        } else if (horizontalShift < 0) {
+            square = (square & (~LEFT)) << 1;
+            horizontalShift++;
+        }
+
+        if (verticalShift > 0) {
+            square = (square & (~TOP)) << BOARD_SIZE;
+            verticalShift--;
+        } else if (verticalShift < 0) {
+            square = (square & (~BOTTOM)) >>> BOARD_SIZE;
+            verticalShift++;
+        }
+
+        return (square == 0) ? 0 : move(square, horizontalShift, verticalShift); 
+    }
+
+    private static long getSquare(int squareNum) {
+        return 1L << (BOARD_SIZE * BOARD_SIZE - squareNum - 1); 
     }
 
 }
