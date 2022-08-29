@@ -109,17 +109,6 @@ public class ChessBoard {
             int row = i / BOARD_SIZE;
             int column = i % BOARD_SIZE;
 
-            for (int i = 0; i < BOARD_SIZE; i++) {
-                for (int j = -i; j <= i; j++) {
-                    rookMoves[count] |= move(square, j, 0);
-                }
-                for (int k = maxDownShift; k <= maxUpShift; k++) {
-                    rookMoves[count] |= move(square, 0, k);
-                }
-
-                count++;
-            }
-
             for (int[] blockerIndex : getBlockerIndices(i)) {
                 int maxLeftShift = blockerIndex[0] - column;
                 int maxRightShift = blockerIndex[1] - column;
