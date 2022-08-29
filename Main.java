@@ -7,6 +7,26 @@ public class Main {
         ChessBoard chessBoard = new ChessBoard();
         System.out.print(chessBoard);
 
+        System.out.println("BLOCKED ROOK MOVES: ");
+        for (long move : ChessBoard.getBlockedRookMoves()) {
+            chessBoard.zeroBoard();
+            chessBoard.setBoard(move, 0);
+            System.out.println(chessBoard);        
+        }
+        
+
+        System.out.println("LINEAR BLOCKER INDICES: ");
+
+        for (int i = 0; i < 8; i++) {
+            //print2DArray(ChessBoard.getLinearBlockerIndices(i));
+        }
+
+        System.out.println("BLOCKER INDICES: ");
+
+        for (int i = 0; i < 64; i++) {
+            //print2DArray(ChessBoard.getBlockerIndices(i));
+        }
+
         System.out.println("KING MOVES: ");
 
         for (long move : ChessBoard.getKingMoves()) {
@@ -20,36 +40,36 @@ public class Main {
 
         for (long move : ChessBoard.getForwardPawnMoves(true)) {
             //System.out.println(String.format("%064d", new BigInteger(Long.toBinaryString(pawnMove))));
-            chessBoard.zeroBoard();
-            chessBoard.setBoard(move, 5);
-            System.out.println(chessBoard);        
+            //chessBoard.zeroBoard();
+            //chessBoard.setBoard(move, 5);
+            //System.out.println(chessBoard);        
         }
 
         System.out.println("BLACK DIAGONAL PAWN MOVES: ");
 
         for (long move : ChessBoard.getDiagonalPawnMoves(true)) {
             //System.out.println(String.format("%064d", new BigInteger(Long.toBinaryString(pawnMove))));
-            chessBoard.zeroBoard();
-            chessBoard.setBoard(move, 5);
-            System.out.println(chessBoard);        
+            //chessBoard.zeroBoard();
+            //chessBoard.setBoard(move, 5);
+            //System.out.println(chessBoard);        
         }
 
         System.out.println("WHITE FORWARD PAWN MOVES: ");
 
         for (long move : ChessBoard.getForwardPawnMoves(false)) {
             //System.out.println(String.format("%064d", new BigInteger(Long.toBinaryString(pawnMove))));
-            chessBoard.zeroBoard();
-            chessBoard.setBoard(move, 11);
-            System.out.println(chessBoard);        
+            //chessBoard.zeroBoard();
+            //chessBoard.setBoard(move, 11);
+            //System.out.println(chessBoard);        
         }
 
         System.out.println("WHITE DIAGONAL PAWN MOVES: ");
 
         for (long move : ChessBoard.getDiagonalPawnMoves(false)) {
             //System.out.println(String.format("%064d", new BigInteger(Long.toBinaryString(pawnMove))));
-            chessBoard.zeroBoard();
-            chessBoard.setBoard(move, 11);
-            System.out.println(chessBoard);        
+            //chessBoard.zeroBoard();
+            //chessBoard.setBoard(move, 11);
+            //System.out.println(chessBoard);        
         }
 
         System.out.println("KNIGHT MOVES: ");
@@ -79,6 +99,28 @@ public class Main {
             //System.out.println(chessBoard);        
         }
 
+    }
+
+    private static void print2DArray(int[][] arr) {
+        System.out.print("(");
+        for (int i = 0; i < arr.length; i++) {
+            if (i > 0) {
+                System.out.print(", ");
+            }
+        
+            System.out.print("(");
+
+            for (int j = 0; j < arr[i].length; j++) {
+                if (j > 0) {
+                    System.out.print(", ");
+                }
+
+                System.out.print(arr[i][j]);
+            }
+
+            System.out.print(")");
+        }
+        System.out.println(")");
     }
 
 }

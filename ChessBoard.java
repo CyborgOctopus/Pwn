@@ -99,6 +99,114 @@ public class ChessBoard {
         return rookMoves;
     }
 
+    public static long[] getBlockedRookMoves() {
+        long[] rookMoves = new long[BOARD_SIZE * BOARD_SIZE * 4096];
+        
+        int count = 0;
+        
+        for (int i = 0; i < BOARD_SIZE * BOARD_SIZE; i++) {
+            long square = getSquare(i);
+            int row = i / BOARD_SIZE;
+            int column = i % BOARD_SIZE;
+
+            for (int i = 0; i < BOARD_SIZE; i++) {
+                for (int j = -i; j <= i; j++) {
+                    rookMoves[count] |= move(square, j, 0);
+                }
+                for (int k = maxDownShift; k <= maxUpShift; k++) {
+                    rookMoves[count] |= move(square, 0, k);
+                }
+
+                count++;
+            }
+
+            for (int[] blockerIndex : getBlockerIndices(i)) {
+                int maxLeftShift = blockerIndex[0] - column;
+                int maxRightShift = blockerIndex[1] - column;
+                int maxUpShift = row - blockerIndex[2];
+                int maxDownShift = row - blockerIndex[3];
+
+                System.out.println("left: " + maxLeftShift);
+
+                for (int j = maxLeftShift; j <= maxRightShift; j++) {
+                    rookMoves[count] |= move(square, j, 0);
+                }
+                for (int k = maxDownShift; k <= maxUpShift; k++) {
+                    rookMoves[count] |= move(square, 0, k);
+                }
+
+                count++;
+            }
+        }
+
+        int count1 = 0;
+
+        for (long move : rookMoves) {
+            if (move != 0) {
+                count1++;
+            }
+        }
+
+        long[] trueMoves = new long[count1];
+
+        for (int i = 0; i < count1; i++) {
+            trueMoves[i] = rookMoves[i];
+        }
+
+        return trueMoves;
+    }
+
+    // public static long[] getBlockedRookMoves() {
+    //     long[] rookMoves = new long[BOARD_SIZE * BOARD_SIZE * 4096];
+
+    //     int count = 0;
+
+    //     for (int i = 0; i < BOARD_SIZE * BOARD_SIZE; i++) {
+    //         int rowShift = BOARD_SIZE * (i / BOARD_SIZE);
+    //         int columnShift = i % BOARD_SIZE;
+    //         long rookMove = ((TOP >>> rowShift) | (LEFT >>> columnShift)) & (~getSquare(i));
+
+    //         for (int[] blockedIndex : getBlockerIndices(i)) {
+    //             // create mask
+
+    //             long blockerMask = 0L;
+    //             long rowBlockerMask = 0L;
+    //             long columnBlockerMask = 0L;
+
+    //              // Add left blocking
+    //             for (int j = 0; j < blockedIndex[0]; j++) {
+    //                 rowBlockerMask |= (LEFT >>> j);
+    //             }
+
+    //             // Add right blocking
+    //             for (int j = blockedIndex[1] + 1; j < BOARD_SIZE; j++) {
+    //                 rowBlockerMask |= (LEFT >>> j);
+    //             }
+
+    //             rowBlockerMask &= (TOP >>> rowShift); // Limit to proper row
+
+    //             // Add above blocking
+    //             for (int j = 0; j < blockedIndex[2]; j++) {
+    //                 columnBlockerMask |= (TOP >>> j);
+    //             }
+
+    //             // Add below blocking
+    //             for (int j = blockedIndex[3] + 1; j < BOARD_SIZE; j++) {
+    //                 columnBlockerMask |= (TOP >>> j);
+    //             }
+
+    //             columnBlockerMask &= (LEFT >>> columnShift); // Limit to proper column
+
+    //             blockerMask = ~(rowBlockerMask | columnBlockerMask); // Combine row and column and invert
+
+    //             rookMoves[count] = rookMove & blockerMask;
+    //             count++;
+    //         }
+    //     }
+
+    //     return rookMoves;
+    // }
+
     public static long[] getBishopMoves() {
         long[] bishopMoves = new long[BOARD_SIZE * BOARD_SIZE];
 
@@ -205,6 +313,48 @@ public class ChessBoard {
 
     private static long getSquare(int squareNum) {
         return 1L << (BOARD_SIZE * BOARD_SIZE - squareNum - 1); 
+    }
+
+    public static int[][] getBlockerIndices(int squareNum) {
+        int row = squareNum / BOARD_SIZE;
+        int column = squareNum % BOARD_SIZE;
+
+        int[][] horizontalIndices = getLinearBlockerIndices(column);
+        int[][] verticalIndices = getLinearBlockerIndices(row);
+        int[][] indices = new int[horizontalIndices.length * verticalIndices.length][4];
+
+        int count = 0;
+
+        for (int[] horizontalIndex : horizontalIndices) {
+            for (int[] verticalIndex : verticalIndices) {
+                indices[count][0] = horizontalIndex[0];
+                indices[count][1] = horizontalIndex[1];
+                indices[count][2] = verticalIndex[0];
+                indices[count][3] = verticalIndex[1];
+                count++;
+            }
+        }
+
+        return indices;
+    }
+
+    public static int[][] getLinearBlockerIndices(int position) {
+        int boundForLeft = (position == 0) ? 1 : position;
+        int boundForRight = (position == BOARD_SIZE - 1) ? position : position + 1;
+        int length = boundForLeft * (BOARD_SIZE - boundForRight);
+        int[][] indices = new int[length][2];
+
+        int count = 0;
+
+        for (int i = 0; i < boundForLeft; i++) {
+            for (int j = boundForRight; j < BOARD_SIZE; j++) {
+                indices[count][0] = i;
+                indices[count][1] = j;
+                count++;
+            }
+        }
+
+        return indices;
     }
 
 }
