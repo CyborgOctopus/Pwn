@@ -106,24 +106,16 @@ public class ChessBoard {
         
         for (int i = 0; i < BOARD_SIZE * BOARD_SIZE; i++) {
             long square = getSquare(i);
-            int row = i / BOARD_SIZE;
-            int column = i % BOARD_SIZE;
-
-            for (int[] blockerIndex : getBlockerIndices(i)) {
-                int maxLeftShift = blockerIndex[0] - column;
-                int maxRightShift = blockerIndex[1] - column;
-                int maxUpShift = row - blockerIndex[2];
-                int maxDownShift = row - blockerIndex[3];
-
-                System.out.println("left: " + maxLeftShift);
-
-                for (int j = maxLeftShift; j <= maxRightShift; j++) {
+            
+            for (int[] shift: getRookShifts(i)) {
+                for (int j = shift[0]; j <= shift[1]; j++) {
                     rookMoves[count] |= move(square, j, 0);
                 }
-                for (int k = maxDownShift; k <= maxUpShift; k++) {
-                    rookMoves[count] |= move(square, 0, k);
-                }
 
+                for (int j = shift[2]; j <= shift[3]; j++) {
+                    rookMoves[count] |= move(square, 0, j);
+                }
+                
                 count++;
             }
         }
@@ -211,6 +203,44 @@ public class ChessBoard {
         }
 
         return bishopMoves;
+    }
+
+    public static long[] getBlockedBishopMoves() {
+        long[] bishopMoves = new long[BOARD_SIZE * BOARD_SIZE * 4096];
+
+        int count = 0;
+        
+        for (int i = 0; i < BOARD_SIZE * BOARD_SIZE; i++) {
+            long square = getSquare(i);
+
+            for (int[] shift : getBishopShifts(i)) {
+                for (int j = shift[0]; j <= shift[1]; j++) {
+                    bishopMoves[count] |= move(square, j, -j);
+                }
+
+                for (int j = shift[2]; j <= shift[3]; j++) {
+                    bishopMoves[count] |= move(square, j, j);
+                }
+
+                count++;
+            }
+        }
+
+        int count1 = 0;
+
+        for (long move : bishopMoves) {
+            if (move != 0) {
+                count1++;
+            }
+        }
+
+        long[] trueMoves = new long[count1];
+
+        for (int i = 0; i < count1; i++) {
+            trueMoves[i] = bishopMoves[i];
+        }
+
+        return trueMoves;
     }
 
     public static long[] getKnightMoves() {
@@ -302,6 +332,82 @@ public class ChessBoard {
 
     private static long getSquare(int squareNum) {
         return 1L << (BOARD_SIZE * BOARD_SIZE - squareNum - 1); 
+    }
+
+    public static int[][] getBishopShifts(int squareNum) {
+        int row = squareNum / BOARD_SIZE;
+        int column = squareNum % BOARD_SIZE;
+
+        int maxLeftShift = -column;
+        int maxRightShift = BOARD_SIZE - column - 1;
+        int maxDownShift = row + 1 - BOARD_SIZE;
+        int maxUpShift = row;
+
+        int negativeDiagLeft = -Math.min(-maxLeftShift, maxUpShift);
+        int negativeDiagRight = Math.min(maxRightShift, -maxDownShift);
+        int positiveDiagLeft = -Math.min(-maxLeftShift, -maxDownShift);
+        int positiveDiagRight = Math.min(maxRightShift, maxUpShift);
+
+        int[][] negativeDiagShifts = getLinearShifts(negativeDiagLeft, negativeDiagRight);
+        int[][] positiveDiagShifts = getLinearShifts(positiveDiagLeft, positiveDiagRight);
+        int[][] shifts = new int[negativeDiagShifts.length * positiveDiagShifts.length][4];
+
+        int count = 0;
+
+        for (int[] negativeDiagShift: negativeDiagShifts) {
+            for (int[] positiveDiagShift : positiveDiagShifts) {
+                shifts[count][0] = negativeDiagShift[0];
+                shifts[count][1] = negativeDiagShift[1];
+                shifts[count][2] = positiveDiagShift[0];
+                shifts[count][3] = positiveDiagShift[1];
+                count++;
+            }
+        }
+
+        return shifts;
+    }
+
+    public static int[][] getRookShifts(int squareNum) {
+        int row = squareNum / BOARD_SIZE;
+        int column = squareNum % BOARD_SIZE;
+
+        int maxLeftShift = -column;
+        int maxRightShift = BOARD_SIZE - column - 1;
+        int maxDownShift = row + 1 - BOARD_SIZE;
+        int maxUpShift = row;
+
+        int[][] horizontalShifts = getLinearShifts(maxLeftShift, maxRightShift);
+        int[][] verticalShifts = getLinearShifts(maxDownShift, maxUpShift);
+        int[][] shifts = new int[horizontalShifts.length * verticalShifts.length][4];
+
+        int count = 0;
+
+        for (int[] horizontalShift: horizontalShifts) {
+            for (int[] verticalShift : verticalShifts) {
+                shifts[count][0] = horizontalShift[0];
+                shifts[count][1] = horizontalShift[1];
+                shifts[count][2] = verticalShift[0];
+                shifts[count][3] = verticalShift[1];
+                count++;
+            }
+        }
+
+        return shifts;
+    }
+
+    public static int[][] getLinearShifts(int maxLeftShift, int maxRightShift) {
+        int[][] shifts = new int[(1 - maxLeftShift) * (1 + maxRightShift)][2];
+        int count = 0;
+        
+        for (int i = maxLeftShift; i <= 0; i++) {
+            for (int j = 0; j <= maxRightShift; j++) {
+                shifts[count][0] = i;
+                shifts[count][1] = j;
+                count++;
+            }
+        }
+
+        return shifts;
     }
 
     public static int[][] getBlockerIndices(int squareNum) {

@@ -1,18 +1,27 @@
 import java.math.BigInteger;
+import java.util.concurrent.TimeUnit;
 
 public class Main {
    
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
 
         ChessBoard chessBoard = new ChessBoard();
         System.out.print(chessBoard);
 
-        System.out.println("BLOCKED ROOK MOVES: ");
-        for (long move : ChessBoard.getBlockedRookMoves()) {
+        System.out.println("BLOCKED BISHOP MOVES: ");
+        for (long move : ChessBoard.getBlockedBishopMoves()) {
             chessBoard.zeroBoard();
-            chessBoard.setBoard(move, 0);
+            chessBoard.setBoard(move, 2);
+            Thread.sleep(500);
             System.out.println(chessBoard);        
         }
+
+        // System.out.println("BLOCKED ROOK MOVES: ");
+        // for (long move : ChessBoard.getBlockedRookMoves()) {
+        //     chessBoard.zeroBoard();
+        //     chessBoard.setBoard(move, 0);
+        //     System.out.println(chessBoard);        
+        // }
         
 
         System.out.println("LINEAR BLOCKER INDICES: ");
