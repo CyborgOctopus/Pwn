@@ -88,18 +88,6 @@ public class ChessBoard {
     }
 
     public static long[] getRookMoves() {
-        long[] rookMoves = new long[BOARD_SIZE * BOARD_SIZE];
-    
-        for (int i = 0; i < rookMoves.length; i++) {
-            int rowShift = BOARD_SIZE * (i / BOARD_SIZE);
-            int columnShift = i % BOARD_SIZE;
-            rookMoves[i] = ((TOP >>> rowShift) | (LEFT >>> columnShift)) & (~getSquare(i));
-        }
-
-        return rookMoves;
-    }
-
-    public static long[] getBlockedRookMoves() {
         long[] rookMoves = new long[BOARD_SIZE * BOARD_SIZE * 4096];
         
         int count = 0;
@@ -137,75 +125,7 @@ public class ChessBoard {
         return trueMoves;
     }
 
-    // public static long[] getBlockedRookMoves() {
-    //     long[] rookMoves = new long[BOARD_SIZE * BOARD_SIZE * 4096];
-
-    //     int count = 0;
-
-    //     for (int i = 0; i < BOARD_SIZE * BOARD_SIZE; i++) {
-    //         int rowShift = BOARD_SIZE * (i / BOARD_SIZE);
-    //         int columnShift = i % BOARD_SIZE;
-    //         long rookMove = ((TOP >>> rowShift) | (LEFT >>> columnShift)) & (~getSquare(i));
-
-    //         for (int[] blockedIndex : getBlockerIndices(i)) {
-    //             // create mask
-
-    //             long blockerMask = 0L;
-    //             long rowBlockerMask = 0L;
-    //             long columnBlockerMask = 0L;
-
-    //              // Add left blocking
-    //             for (int j = 0; j < blockedIndex[0]; j++) {
-    //                 rowBlockerMask |= (LEFT >>> j);
-    //             }
-
-    //             // Add right blocking
-    //             for (int j = blockedIndex[1] + 1; j < BOARD_SIZE; j++) {
-    //                 rowBlockerMask |= (LEFT >>> j);
-    //             }
-
-    //             rowBlockerMask &= (TOP >>> rowShift); // Limit to proper row
-
-    //             // Add above blocking
-    //             for (int j = 0; j < blockedIndex[2]; j++) {
-    //                 columnBlockerMask |= (TOP >>> j);
-    //             }
-
-    //             // Add below blocking
-    //             for (int j = blockedIndex[3] + 1; j < BOARD_SIZE; j++) {
-    //                 columnBlockerMask |= (TOP >>> j);
-    //             }
-
-    //             columnBlockerMask &= (LEFT >>> columnShift); // Limit to proper column
-
-    //             blockerMask = ~(rowBlockerMask | columnBlockerMask); // Combine row and column and invert
-
-    //             rookMoves[count] = rookMove & blockerMask;
-    //             count++;
-    //         }
-    //     }
-
-    //     return rookMoves;
-    // }
-
     public static long[] getBishopMoves() {
-        long[] bishopMoves = new long[BOARD_SIZE * BOARD_SIZE];
-
-        for (int i = 0; i < bishopMoves.length; i++) {
-            long square = getSquare(i);
-
-            for (int j = 1; j < BOARD_SIZE; j++) {
-                bishopMoves[i] |= move(square, -j, -j)
-                | move(square, -j, j)
-                | move(square, j, -j)
-                | move(square, j, j);
-            }
-        }
-
-        return bishopMoves;
-    }
-
-    public static long[] getBlockedBishopMoves() {
         long[] bishopMoves = new long[BOARD_SIZE * BOARD_SIZE * 4096];
 
         int count = 0;
@@ -409,47 +329,4 @@ public class ChessBoard {
 
         return shifts;
     }
-
-    public static int[][] getBlockerIndices(int squareNum) {
-        int row = squareNum / BOARD_SIZE;
-        int column = squareNum % BOARD_SIZE;
-
-        int[][] horizontalIndices = getLinearBlockerIndices(column);
-        int[][] verticalIndices = getLinearBlockerIndices(row);
-        int[][] indices = new int[horizontalIndices.length * verticalIndices.length][4];
-
-        int count = 0;
-
-        for (int[] horizontalIndex : horizontalIndices) {
-            for (int[] verticalIndex : verticalIndices) {
-                indices[count][0] = horizontalIndex[0];
-                indices[count][1] = horizontalIndex[1];
-                indices[count][2] = verticalIndex[0];
-                indices[count][3] = verticalIndex[1];
-                count++;
-            }
-        }
-
-        return indices;
-    }
-
-    public static int[][] getLinearBlockerIndices(int position) {
-        int boundForLeft = (position == 0) ? 1 : position;
-        int boundForRight = (position == BOARD_SIZE - 1) ? position : position + 1;
-        int length = boundForLeft * (BOARD_SIZE - boundForRight);
-        int[][] indices = new int[length][2];
-
-        int count = 0;
-
-        for (int i = 0; i < boundForLeft; i++) {
-            for (int j = boundForRight; j < BOARD_SIZE; j++) {
-                indices[count][0] = i;
-                indices[count][1] = j;
-                count++;
-            }
-        }
-
-        return indices;
-    }
-
 }
