@@ -104,6 +104,7 @@ public class ChessBoard {
                     rookMoves[count] |= move(square, 0, j);
                 }
                 
+                rookMoves[count] &= ~square;
                 count++;
             }
         }
@@ -142,6 +143,7 @@ public class ChessBoard {
                     bishopMoves[count] |= move(square, j, j);
                 }
 
+                bishopMoves[count] &= ~square;
                 count++;
             }
         }
@@ -315,12 +317,15 @@ public class ChessBoard {
         return shifts;
     }
 
-    public static int[][] getLinearShifts(int maxLeftShift, int maxRightShift) {
-        int[][] shifts = new int[(1 - maxLeftShift) * (1 + maxRightShift)][2];
+    public static int[][] getLinearShifts(int maxLeftShift, int maxRightShift) {        
+        int minLeftShift = (maxLeftShift == 0 ? 0 : -1);
+        int minRightShift = (maxRightShift == 0 ? 0 : 1);
+
+        int[][] shifts = new int[(1 + minLeftShift - maxLeftShift) * (1 + maxRightShift - minRightShift)][2];
         int count = 0;
-        
-        for (int i = maxLeftShift; i <= 0; i++) {
-            for (int j = 0; j <= maxRightShift; j++) {
+
+        for (int i = maxLeftShift; i <= minLeftShift; i++) {
+            for (int j = minRightShift; j <= maxRightShift; j++) {
                 shifts[count][0] = i;
                 shifts[count][1] = j;
                 count++;

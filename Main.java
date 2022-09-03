@@ -9,19 +9,20 @@ public class Main {
         System.out.print(chessBoard);
 
         System.out.println("BLOCKED BISHOP MOVES: ");
-        for (long move : ChessBoard.getBlockedBishopMoves()) {
+        for (long move : ChessBoard.getBishopMoves()) {
             chessBoard.zeroBoard();
             chessBoard.setBoard(move, 2);
             Thread.sleep(500);
             System.out.println(chessBoard);        
         }
 
-        // System.out.println("BLOCKED ROOK MOVES: ");
-        // for (long move : ChessBoard.getBlockedRookMoves()) {
-        //     chessBoard.zeroBoard();
-        //     chessBoard.setBoard(move, 0);
-        //     System.out.println(chessBoard);        
-        // }
+        System.out.println("BLOCKED ROOK MOVES: ");
+        for (long move : ChessBoard.getRookMoves()) {
+            chessBoard.zeroBoard();
+            chessBoard.setBoard(move, 0);
+            Thread.sleep(250);
+            System.out.println(chessBoard);        
+        }
         
 
         System.out.println("LINEAR BLOCKER INDICES: ");
