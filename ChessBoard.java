@@ -38,7 +38,7 @@ public class ChessBoard {
     // The numbers below were provided by Dr. Kannan and can be found on his website:
     // http://pradu.us/old/Nov27_2008/Buzz/
     // I have changed the ordering of the numbers to fit my program.
-    int[] ROOK_SHIFTS =
+    private static int[] ROOK_SHIFTS =
     {
         53, 53, 53, 53, 53, 54, 54, 53,
         53, 54, 54, 54, 54, 54, 54, 53,
@@ -50,7 +50,7 @@ public class ChessBoard {
         52, 53, 53, 53, 53, 53, 53, 52
     };
 
-    long[] ROOK_MAGICS =
+    private static long[] ROOK_MAGICS =
     {
         0x0001FFFAABFAD1A2L, 0x0001000082000401L, 0x0001000204000801L, 0x0001000204080011L,
         0x0000040810002101L, 0x003FFFCDFFD88096L, 0x007FFCDDFCED714AL, 0x00FFFCDDFCED714AL,
@@ -70,7 +70,7 @@ public class ChessBoard {
         0x0080040800100080L, 0x0080081000200080L, 0x0040001000200040L, 0x0080001020400080L
     };
 
-    int[] BISHOP_SHIFTS = {
+    private static int[] BISHOP_SHIFTS = {
         58, 59, 59, 59, 59, 59, 59, 58,
         59, 59, 59, 59, 59, 59, 59, 59,
         59, 59, 57, 57, 57, 57, 59, 59,
@@ -81,7 +81,7 @@ public class ChessBoard {
         58, 59, 59, 59, 59, 59, 59, 58
     };
 
-    long[] BISHOP_MAGICS = {
+    private static long[] BISHOP_MAGICS = {
         0x0002020202020200L, 0x0000040404040400L, 0x0000000404080200L, 0x0000000010020200L,
         0x0000000000208800L, 0x0000000020841000L, 0x0000002082082000L, 0x0000104104104000L,
         0x0002020202020000L, 0x0004040404040000L, 0x0000040408020000L, 0x0000001002020000L,
