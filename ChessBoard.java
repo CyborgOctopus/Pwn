@@ -3,6 +3,9 @@ import java.math.BigInteger;
 // Inspired by https://alexanderameye.github.io/notes/chess-engine/
 // I learned about how magic bitboards work from here: 
 // https://essays.jwatzman.org/essays/chess-move-generation-with-magic-bitboards.html
+// Also got more useful info about magic bitboards from here: 
+// https://rhysre.net/fast-chess-move-generation-with-magic-bitboards.html
+// And useful github repo: https://github.com/GunshipPenguin/shallow-blue/
 
 
 public class ChessBoard {
@@ -29,6 +32,73 @@ public class ChessBoard {
     private static long WHITE_QUEEN = 0x0000000000000010L;
     private static long WHITE_KING = 0x0000000000000008L;
     private static long WHITE_PAWNS = 0x000000000000ff00L;
+
+    // For now, magic numbers and shifts will just be hard-coded based on tables from Dr. Pradyumna Kannan. Eventually,
+    // I may switch to a different implementation.
+    // The numbers below were provided by Dr. Kannan and can be found on his website:
+    // http://pradu.us/old/Nov27_2008/Buzz/
+    // I have changed the ordering of the numbers to fit my program.
+    int[] ROOK_SHIFTS =
+    {
+        53, 53, 53, 53, 53, 54, 54, 53,
+        53, 54, 54, 54, 54, 54, 54, 53,
+        53, 54, 54, 54, 54, 54, 54, 53,
+        53, 54, 54, 54, 54, 54, 54, 53,
+        53, 54, 54, 54, 54, 54, 54, 53,
+        53, 54, 54, 54, 54, 54, 54, 53,
+        53, 54, 54, 54, 54, 54, 54, 53,
+        52, 53, 53, 53, 53, 53, 53, 52
+    };
+
+    long[] ROOK_MAGICS =
+    {
+        0x0001FFFAABFAD1A2L, 0x0001000082000401L, 0x0001000204000801L, 0x0001000204080011L,
+        0x0000040810002101L, 0x003FFFCDFFD88096L, 0x007FFCDDFCED714AL, 0x00FFFCDDFCED714AL,
+        0x0000800041000080L, 0x0000800100020080L, 0x0000020004008080L, 0x0000040008008080L,
+        0x0000080010008080L, 0x0000100020008080L, 0x0000200040008080L, 0x0000204000800080L,
+        0x0000004081020004L, 0x0000010002008080L, 0x0000020004008080L, 0x0000040008008080L,
+        0x0000080010008080L, 0x0000100020008080L, 0x0000200040008080L, 0x0000204000808000L,
+        0x0000800040800100L, 0x0000020001010004L, 0x0000020080800400L, 0x0000040080800800L,
+        0x0000080080801000L, 0x0000100080802000L, 0x0000200040401000L, 0x0000204000800080L,
+        0x0000800080004100L, 0x0000010080800200L, 0x0000020080040080L, 0x0000040080080080L,
+        0x0000080080100080L, 0x0000100080200080L, 0x0000200040005000L, 0x0000208080004000L,
+        0x0000020000408104L, 0x0000010100020004L, 0x0000808002000400L, 0x0000808004000800L,
+        0x0000808008001000L, 0x0000808010002000L, 0x0000404000201000L, 0x0000208000400080L,
+        0x0000800040800100L, 0x0000800100020080L, 0x0000800200040080L, 0x0000800400080080L,
+        0x0000800800100080L, 0x0000801000200080L, 0x0000400020005000L, 0x0000800020400080L,
+        0x0080002040800100L, 0x0080008001000200L, 0x0080010200040080L, 0x0080020400080080L,
+        0x0080040800100080L, 0x0080081000200080L, 0x0040001000200040L, 0x0080001020400080L
+    };
+
+    int[] BISHOP_SHIFTS = {
+        58, 59, 59, 59, 59, 59, 59, 58,
+        59, 59, 59, 59, 59, 59, 59, 59,
+        59, 59, 57, 57, 57, 57, 59, 59,
+        59, 59, 57, 55, 55, 57, 59, 59,
+        59, 59, 57, 55, 55, 57, 59, 59,
+        59, 59, 57, 57, 57, 57, 59, 59,
+        59, 59, 59, 59, 59, 59, 59, 59,
+        58, 59, 59, 59, 59, 59, 59, 58
+    };
+
+    long[] BISHOP_MAGICS = {
+        0x0002020202020200L, 0x0000040404040400L, 0x0000000404080200L, 0x0000000010020200L,
+        0x0000000000208800L, 0x0000000020841000L, 0x0000002082082000L, 0x0000104104104000L,
+        0x0002020202020000L, 0x0004040404040000L, 0x0000040408020000L, 0x0000001002020000L,
+        0x0000000020880000, 0x0000002084100000L, 0x0000208208200000L, 0x0000410410400000L,
+        0x0001010101000200L, 0x0002020202000400L, 0x0001010101000200L, 0x0000080100400400L,
+        0x0000002011000800L, 0x0000082088001000L, 0x0000410410002000L, 0x0000820820004000L,
+        0x0000808080010400L, 0x0001010100020800L, 0x0000808100020100L, 0x0000404040040100L,
+        0x0000020080080080L, 0x0000104400080800L, 0x0000820800101000L, 0x0001041000202000L,
+        0x0000404000820800L, 0x0000808001041000L, 0x0000404002011000L, 0x0000840000802000L,
+        0x0000404004010200L, 0x0000208004010400L, 0x0001040008080800L, 0x0002080010101000L,
+        0x0000200041041000L, 0x0000400082082000L, 0x0000200100884000L, 0x0000800400A00000L,
+        0x0000800802004000L, 0x0001000202020200L, 0x0002000404040400L, 0x0004000808080800L,
+        0x0000002082082000L, 0x0000004104104000L, 0x0000008210400000L, 0x0000011040000000L,
+        0x0000040400800000L, 0x0000040102020000L, 0x0000020202020200L, 0x0000040404040400L,
+        0x0000104104104000L, 0x0000410410400000L, 0x0000821040000000L, 0x0001104000000000L,
+        0x0004040080000000L, 0x0004010202000000L, 0x0002020202020000L, 0x0002020202020200L
+    };
 
     public long[] bitboards;
 
@@ -87,82 +157,52 @@ public class ChessBoard {
         return null;
     }
 
-    public static long[] getRookMoves() {
-        long[] rookMoves = new long[BOARD_SIZE * BOARD_SIZE * 4096];
-        
-        int count = 0;
-        
+    public static long[][] getRookMoves() {
+        long[][] rookMoves = new long[BOARD_SIZE * BOARD_SIZE][4096];
+                
         for (int i = 0; i < BOARD_SIZE * BOARD_SIZE; i++) {
             long square = getSquare(i);
+            int count = 0;
             
             for (int[] shift: getRookShifts(i)) {
                 for (int j = shift[0]; j <= shift[1]; j++) {
-                    rookMoves[count] |= move(square, j, 0);
+                    rookMoves[i][count] |= move(square, j, 0);
                 }
 
                 for (int j = shift[2]; j <= shift[3]; j++) {
-                    rookMoves[count] |= move(square, 0, j);
+                    rookMoves[i][count] |= move(square, 0, j);
                 }
                 
-                rookMoves[count] &= ~square;
+                rookMoves[i][count] &= ~square;
                 count++;
             }
         }
 
-        int count1 = 0;
-
-        for (long move : rookMoves) {
-            if (move != 0) {
-                count1++;
-            }
-        }
-
-        long[] trueMoves = new long[count1];
-
-        for (int i = 0; i < count1; i++) {
-            trueMoves[i] = rookMoves[i];
-        }
-
-        return trueMoves;
+        return rookMoves;
     }
 
-    public static long[] getBishopMoves() {
-        long[] bishopMoves = new long[BOARD_SIZE * BOARD_SIZE * 4096];
-
-        int count = 0;
-        
+    public static long[][] getBishopMoves() {
+        long[][] bishopMoves = new long[BOARD_SIZE * BOARD_SIZE][4096];
+ 
         for (int i = 0; i < BOARD_SIZE * BOARD_SIZE; i++) {
             long square = getSquare(i);
+            int count = 0;
 
             for (int[] shift : getBishopShifts(i)) {
                 for (int j = shift[0]; j <= shift[1]; j++) {
-                    bishopMoves[count] |= move(square, j, -j);
+                    bishopMoves[i][count] |= move(square, j, -j);
                 }
 
                 for (int j = shift[2]; j <= shift[3]; j++) {
-                    bishopMoves[count] |= move(square, j, j);
+                    bishopMoves[i][count] |= move(square, j, j);
                 }
 
-                bishopMoves[count] &= ~square;
+                bishopMoves[i][count] &= ~square;
                 count++;
             }
         }
 
-        int count1 = 0;
-
-        for (long move : bishopMoves) {
-            if (move != 0) {
-                count1++;
-            }
-        }
-
-        long[] trueMoves = new long[count1];
-
-        for (int i = 0; i < count1; i++) {
-            trueMoves[i] = bishopMoves[i];
-        }
-
-        return trueMoves;
+        return bishopMoves;
     }
 
     public static long[] getKnightMoves() {
@@ -224,6 +264,52 @@ public class ChessBoard {
         }
 
         return pawnMoves;
+    }
+
+    public static long[] getRowColMasks() {
+        long[] masks = new long[BOARD_SIZE * BOARD_SIZE];
+
+        for (int i = 0; i < BOARD_SIZE * BOARD_SIZE; i++) {
+            long square = getSquare(i);
+            
+            for (int j = 0; j < BOARD_SIZE; j++) {
+                masks[i] |= move(square, -j, 0);
+                masks[i] |= move(square, 0, -j);
+                masks[i] |= move(square, 0, j);
+                masks[i] |= move(square, j, 0);
+            }
+
+            // Match Dr. Kannan's formatting of excluding edges (that aren't one of the rook's files) and square
+            long orig_mask = masks[i];
+            masks[i] &= (LEFT & orig_mask) != LEFT ? ~LEFT : 0xffffffffffffffffL;
+            masks[i] &= (RIGHT & orig_mask) != RIGHT ? ~RIGHT : 0xffffffffffffffffL;
+            masks[i] &= (TOP & orig_mask) != TOP ? ~TOP : 0xffffffffffffffffL;
+            masks[i] &= (BOTTOM & orig_mask) != BOTTOM ? ~BOTTOM : 0xffffffffffffffffL;
+            masks[i] &= ~square;
+        }
+
+        return masks;
+    }
+
+    public static long[] getDiagonalMasks() {
+        long[] masks = new long[BOARD_SIZE * BOARD_SIZE];
+
+        for (int i = 0; i < BOARD_SIZE * BOARD_SIZE; i++) {
+            long square = getSquare(i);
+
+            for (int j = 0; j < BOARD_SIZE; j++) {
+                masks[i] |= move(square, -j, -j);
+                masks[i] |= move(square, -j, j);
+                masks[i] |= move(square, j, -j);
+                masks[i] |= move(square, j, j);
+            }
+
+            // In order to match Dr. Kannan's formatting, make sure they don't include the edges or the square
+            masks[i] &= ~(LEFT | RIGHT | TOP | BOTTOM);
+            masks[i] &= ~square;
+        }
+
+        return masks;
     }
 
     // Returns a square shifted horizontally and vertically by a given amount, or 0 if this shift would
