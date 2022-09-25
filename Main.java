@@ -16,13 +16,27 @@ public class Main {
         ChessBoard chessBoard = new ChessBoard();
         System.out.print(chessBoard);
 
+        String oldBoard = "";
+        System.out.println("ROOK BLOCKER PATTERNS: ");
+        for (int i = 0; i < 64; i++) {
+            for (long pattern : ChessBoard.getRowColBlockerPatterns(i)) {
+                chessBoard.zeroBoard();
+                chessBoard.setBoard(pattern, 0);
+                //Thread.sleep(500);
+                if (!chessBoard.toString().equals(oldBoard)) {
+                    System.out.println(chessBoard);
+                }
+                oldBoard = chessBoard.toString();
+            }
+        }
+
         System.out.println("ROOK MOSKS:");
-        for (long mask : ROOK_MASKS) {
-            chessBoard.zeroBoard();
-            chessBoard.setBoard(mask, 0);
-            Thread.sleep(500);
-            System.out.println(chessBoard);
-        }  
+        // for (long mask : ROOK_MASKS) {
+        //     chessBoard.zeroBoard();
+        //     chessBoard.setBoard(mask, 0);
+        //     Thread.sleep(500);
+        //     System.out.println(chessBoard);
+        // }  
 
         System.out.println("BOSHOP MOSKS:");
         // for (long mask : BISHOP_MASKS) {
@@ -117,13 +131,13 @@ public class Main {
 
         System.out.println("ROW AND COLUMN MASKS: ");
 
-        for (long move : ChessBoard.getRowColMasks()) {
-            System.out.println(String.format("%064d", new BigInteger(Long.toBinaryString(move))));
-            chessBoard.zeroBoard();
-            chessBoard.setBoard(move, 0);
-            Thread.sleep(500);
-            System.out.println(chessBoard);        
-        }
+        // for (long move : ChessBoard.getRowColMasks()) {
+        //     System.out.println(String.format("%064d", new BigInteger(Long.toBinaryString(move))));
+        //     chessBoard.zeroBoard();
+        //     chessBoard.setBoard(move, 0);
+        //     Thread.sleep(500);
+        //     System.out.println(chessBoard);        
+        // }
 
         System.out.println("DIAGONAL MASKS: ");
         

@@ -12,7 +12,7 @@ public class ChessBoard {
 
     private static int BOARD_SIZE = 8;
     // The letter A is used for pawns because lowercase and capital Ps look too similar.
-    private static String[] PIECE_LETTERS = {"R", "N", "B", "Q", "K", "A", "r", "n", "b", "q", "k", "a"};
+    private static String[] PIECE_LETTERS = {"R", "N", "B", "Q", "K", "P", "r", "n", "b", "q", "k", "p"};
     private static String BLANK_SQUARE = "_";
     private static long LEFT = 0x8080808080808080L;
     private static long RIGHT = 0x0101010101010101L;
@@ -310,6 +310,41 @@ public class ChessBoard {
         }
 
         return masks;
+    }
+
+    // Generates all possible 15-bit integers and splits them into 2 parts: a row pattern (first 8 bits) and a column pattern
+    // (last 7 bits). These represent all possible patterns of pieces on a given row/col combination on a board.
+    public static long[] getRowColBlockerPatterns(int squareNum) {
+        int row = squareNum / BOARD_SIZE;
+        int column = squareNum % BOARD_SIZE;
+        int patternLength = 2 * BOARD_SIZE - 1; // 8 bits for the row, 8 for the column, -1 for the intersection
+        int numPatterns = 1 << (patternLength + 1);
+        int rowMask = 0x7f80; // mask out the last 7 bits, because these will be used for the column.
+
+        long[] patterns = new long[numPatterns];
+
+        for (int i = 0; i < numPatterns; i++) {
+            // write row pattern
+            long rowPattern = (long) (i & rowMask);
+            rowPattern >>>= BOARD_SIZE - 1; // right shift it to the end.
+            patterns[i] |= rowPattern << (BOARD_SIZE - row - 1) * BOARD_SIZE;
+
+            // write column pattern
+            long colPattern = (long) i & (~rowMask);
+            int bitIndex = 0;
+            for (int j = 0; j < BOARD_SIZE; j++) {
+                if (j == BOARD_SIZE - row - 1) {
+                    continue; // skip intersection with row
+                }
+                long bit = colPattern & (1L << bitIndex);
+                bit >>>= bitIndex; // right shift it to the end;
+                bit <<= BOARD_SIZE - column - 1; // left shift it to the proper column
+                patterns[i] |= bit << BOARD_SIZE * j; // shift to proper row and add to pattern
+                bitIndex++;
+            }
+        }
+
+        return patterns;
     }
 
     // Returns a square shifted horizontally and vertically by a given amount, or 0 if this shift would
